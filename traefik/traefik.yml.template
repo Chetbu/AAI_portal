@@ -46,5 +46,7 @@ certificatesResolvers:
     acme:
       email: "${ACME_EMAIL}"
       storage: /acme.json
-      httpChallenge:
-        entryPoint: web
+      tlsChallenge: {}
+      # httpChallenge not used: on shared VPS the existing Traefik intercepts
+      # port-80 ACME requests before they reach AAI Traefik. TLS-ALPN-01 works
+      # cleanly because port-443 TCP passthrough reaches AAI Traefik directly.
