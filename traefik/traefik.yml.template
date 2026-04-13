@@ -8,7 +8,7 @@ api:
   insecure: false       # dashboard only via authenticated router
 
 log:
-  level: INFO           # change to DEBUG when troubleshooting
+  level: DEBUG
 
 accessLog:
   filePath: "/var/log/traefik/access.log"
@@ -46,7 +46,5 @@ certificatesResolvers:
     acme:
       email: "${ACME_EMAIL}"
       storage: /acme.json
+      caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
       tlsChallenge: {}
-      # httpChallenge not used: on shared VPS the existing Traefik intercepts
-      # port-80 ACME requests before they reach AAI Traefik. TLS-ALPN-01 works
-      # cleanly because port-443 TCP passthrough reaches AAI Traefik directly.
