@@ -1,0 +1,121 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+AAI_portal is an **infrastructure-as-code project** that provides a shared VPS platform for running multiple independent microservices/POC projects behind a single public domain with centralized authentication. The repository is currently in the planning/scaffolding phase — `docs/` contains detailed architecture discussions and a 2000+ line phased implementation plan.
+
+## Architecture
+
+```
+Internet → Traefik (TLS termination, subdomain routing)
+              → oauth2-proxy (Azure AD authentication)
+                  → Portal (static nginx, landing page)
+                  → project-N.${BASE_DOMAIN} (independent project containers)
+```
+
+**Three core infrastructure services** (all run via a single `docker-compose.yml`):
+1. **Traefik v3.1** — reverse proxy, SSL via Let's Encrypt (HTTP challenge), dynamic service discovery via Docker labels
+2. **oauth2-proxy** — ForwardAuth middleware, Azure AD / Microsoft Entra ID, email whitelisting
+3. **Portal** — nginx serving static HTML + client-side JS health checker
+
+**Independent projects** live in separate git repos under `projects/`. They integrate by:
+- Declaring `aai-public` as an external Docker network
+- Adding 6 Traefik labels to their `docker-compose.yml`
+
+## Key Conventions
+
+### Environment Variables
+Two env files are always loaded in sequence:
+```bash
+docker compose --env-file ../shared.env --env-file .env up -d --build
+```
+- `shared.env` — non-secret platform config, committed to git (`BASE_DOMAIN`, `ACME_EMAIL`, etc.)
+- `.env` — secrets only, gitignored (`AZURE_TENANT_ID`, `AZURE_CLIENT_SECRET`, `COOKIE_SECRET`, etc.)
+- `.env.example` — template committed to git
+
+`BASE_DOMAIN` is the single source of truth for domain names — never hardcode domain names anywhere.
+
+### Traefik Label Pattern (for all routed services)
+```yaml
+labels:
+  - "traefik.enable=true"
+  - "traefik.docker.network=aai-public"
+  - "traefik.http.routers.<name>.rule=Host(`<subdomain>.${BASE_DOMAIN}`)"
+  - "traefik.http.routers.<name>.tls.certresolver=letsencrypt"
+  - "traefik.http.routers.<name>.middlewares=oauth@docker,secure-headers@file"
+  - "traefik.http.services.<name>.loadbalancer.server.port=<port>"
+```
+
+### Template Substitution
+Three layers of variable substitution at different stages:
+- `docker-compose.yml` — Docker Compose interpolates `${VAR}` at runtime
+- `traefik.yml.template` → `traefik.yml` — `envsubst` via `entrypoint-wrapper.sh` at container start
+- `portal/config.json.template` → `config.json` — `envsubst` via `portal/entrypoint.sh` at container start
+
+### Makefile Targets
+```bash
+make up        # Start all services (builds if needed)
+make down      # Stop services
+make restart   # Force recreate containers
+make logs      # Follow container logs
+make validate  # Dry-run: check docker-compose config with env interpolation
+```
+
+### Network Isolation
+- `aai-public` is the shared external Docker network (all front-facing containers)
+- Projects can have additional internal networks for databases/caches
+- Only containers that need Traefik routing attach to `aai-public`
+
+## Directory Structure (target state)
+
+```
+infrastructure/          # This repo
+├── docker-compose.yml
+├── .env / .env.example
+├── shared.env
+├── Makefile
+├── traefik/
+│   ├── traefik.yml.template
+│   ├── entrypoint-wrapper.sh
+│   ├── acme.json            # gitignored, chmod 600
+│   └── dynamic/
+│       └── middlewares.yml
+├── oauth2-proxy/
+│   └── allowed_emails.txt
+├── portal/
+│   ├── Dockerfile
+│   ├── index.html
+│   ├── config.json.template
+│   ├── healthcheck.js
+│   └── entrypoint.sh
+└── docs/
+    ├── highlevel_architecture_discussion.md
+    ├── detailed_plan_OPUS.md        # 6-phase implementation plan
+    └── shared_vps_architecture_discussion.md
+
+projects/                # Sibling directory, separate git repos
+├── project-1/
+└── project-2/
+```
+
+## Implementation Plan
+
+The `docs/detailed_plan_OPUS.md` contains the authoritative 6-phase implementation plan:
+- **Phase 1**: VPS provisioning, DNS, Docker setup, directory layout
+- **Phase 2**: Traefik setup, SSL, test container
+- **Phase 3**: Azure AD app registration, oauth2-proxy
+- **Phase 4**: Portal (static site, health checker, config templating)
+- **Phase 5**: Project template (reusable scaffolding for new POCs)
+- **Phase 6**: Hardening, backups, monitoring
+
+When generating or modifying infrastructure files, consult `docs/detailed_plan_OPUS.md` for the exact intended configuration and `docs/shared_vps_architecture_discussion.md` for shared-VPS / nested Traefik scenarios.
+
+## Security Notes
+
+- `acme.json` must have `chmod 600` or Traefik will refuse to start
+- Docker socket should be mounted read-only on Traefik when possible
+- oauth2-proxy `allowed_emails.txt` controls access (one email per line)
+- Session cookies use domain `.${BASE_DOMAIN}` for SSO across all subdomains
+- Traefik dashboard itself is protected behind oauth2-proxy
