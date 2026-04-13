@@ -1,0 +1,50 @@
+services:
+
+  # ── AAI Traefik ───────────────────────────────────────────
+  # No ports: section — existing Traefik forwards traffic via TCP passthrough
+  traefik:
+    image: traefik:v3.1
+    container_name: aai-traefik
+    restart: unless-stopped
+    environment:
+      - ACME_EMAIL=${ACME_EMAIL}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml.template:/etc/traefik/traefik.yml.template:ro
+      - ./traefik/entrypoint-wrapper.sh:/entrypoint-wrapper.sh:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./traefik/acme.json:/acme.json
+      - traefik-logs:/var/log/traefik
+    entrypoint: ["/entrypoint-wrapper.sh"]
+    command: ["traefik"]
+    networks:
+      - aai-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=aai-public"
+      # Dashboard — auth middleware added in Phase 3
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard.middlewares=secure-headers@file"
+
+  # ── Whoami — temporary test container, remove after Phase 2 verification ──
+  whoami:
+    image: traefik/whoami
+    container_name: aai-whoami
+    restart: unless-stopped
+    networks:
+      - aai-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=aai-public"
+      - "traefik.http.routers.whoami.rule=Host(`test.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.whoami.tls.certresolver=letsencrypt"
+      - "traefik.http.services.whoami.loadbalancer.server.port=80"
+
+volumes:
+  traefik-logs:
+
+networks:
+  aai-public:
+    external: true
