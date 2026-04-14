@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head><title>Signing in…</title></head>
+<body>
+<!--
+  Two-phase sign-in to avoid the CSRF race condition that occurs when Traefik's
+  errors middleware triggers concurrent /oauth2/sign_in calls.
+
+  Phase 1 — served via the errors middleware proxy on the protected domain
+  (e.g. test.aai.chetbu.fr): no CSRF token is created here; the browser is
+  simply redirected to the auth domain.
+
+  Phase 2 — served directly on auth.aai.chetbu.fr after the redirect: the
+  form auto-submits via POST, which is when oauth2-proxy creates exactly one
+  CSRF token and starts the OAuth flow.
+-->
+<form id="f" method="POST" action="/oauth2/sign_in">
+  <input type="hidden" name="rd" value="{{.Redirect}}">
+</form>
+<script>
+  if (window.location.hostname === 'auth.aai.chetbu.fr') {
+    // Phase 2: on the auth domain — start the OAuth flow immediately
+    document.getElementById('f').submit();
+  } else {
+    // Phase 1: on a protected domain — send the browser to the auth domain
+    window.location.replace(
+      'https://auth.aai.chetbu.fr/oauth2/sign_in?rd=' +
+      encodeURIComponent(window.location.href)
+    );
+  }
+</script>
+<noscript>
+  <p><a href="https://auth.aai.chetbu.fr/oauth2/sign_in">Sign in</a></p>
+</noscript>
+</body>
+</html>

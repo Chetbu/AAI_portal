@@ -55,9 +55,11 @@ services:
       - OAUTH2_PROXY_PASS_USER_HEADERS=true
       - OAUTH2_PROXY_WHITELIST_DOMAINS=.${BASE_DOMAIN}
       - OAUTH2_PROXY_REDIRECT_URL=https://auth.${BASE_DOMAIN}/oauth2/callback
-      - OAUTH2_PROXY_SKIP_PROVIDER_BUTTON=true
+      - OAUTH2_PROXY_SKIP_PROVIDER_BUTTON=false
+      - OAUTH2_PROXY_CUSTOM_TEMPLATES_DIR=/etc/oauth2-proxy/templates
     volumes:
       - ./oauth2-proxy/allowed_emails.txt:/etc/oauth2-proxy/allowed_emails.txt:ro
+      - ./oauth2-proxy/templates:/etc/oauth2-proxy/templates:ro
     networks:
       - aai-public
     labels:
