@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     environment:
       - ACME_EMAIL=${ACME_EMAIL}
+      - HOSTINGER_API_TOKEN=${HOSTINGER_API_TOKEN}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/traefik.yml.template:/etc/traefik/traefik.yml.template:ro
