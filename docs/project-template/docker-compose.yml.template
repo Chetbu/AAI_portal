@@ -1,0 +1,44 @@
+# ==============================================================
+# AAI Project: __PROJECT_NAME__
+# Subdomain:   __PROJECT_SLUG__.${BASE_DOMAIN}
+# ==============================================================
+
+services:
+  app:
+    build: .
+    container_name: aai-__PROJECT_SLUG__
+    restart: unless-stopped
+    # environment:
+    #   - DATABASE_URL=postgresql://user:pass@db:5432/appdb
+    networks:
+      - aai-public
+      - internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=aai-public"
+      - "traefik.http.routers.__PROJECT_SLUG__.rule=Host(`__PROJECT_SLUG__.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.__PROJECT_SLUG__.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.__PROJECT_SLUG__.middlewares=tfa@docker,secure-headers@file"
+      - "traefik.http.services.__PROJECT_SLUG__.loadbalancer.server.port=__APP_PORT__"
+
+  # ── Optional: project-specific database ──
+  # db:
+  #   image: postgres:16-alpine
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: appdb
+  #     POSTGRES_USER: user
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD}
+  #   volumes:
+  #     - db-data:/var/lib/postgresql/data
+  #   networks:
+  #     - internal
+
+# volumes:
+#   db-data:
+
+networks:
+  aai-public:
+    external: true
+  internal:
+    driver: bridge

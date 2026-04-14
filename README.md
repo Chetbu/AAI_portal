@@ -154,7 +154,7 @@ The service will be reachable at `https://<subdomain>.BASE_DOMAIN` and protected
 │   ├── Dockerfile
 │   ├── index.html
 │   ├── config.json.template        # rendered to config.json at container start
-│   ├── healthcheck.js
+│   ├── healthcheck.sh
 │   └── entrypoint.sh
 └── docs/
     ├── detailed_plan_OPUS.md               # 6-phase implementation plan

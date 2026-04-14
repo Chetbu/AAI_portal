@@ -62,6 +62,7 @@ services:
       - "traefik.http.middlewares.tfa.forwardAuth.address=http://aai-traefik-forward-auth:4181"
       - "traefik.http.middlewares.tfa.forwardAuth.trustForwardHeader=true"
       - "traefik.http.middlewares.tfa.forwardAuth.authResponseHeaders=X-Forwarded-User"
+      - "traefik.http.middlewares.tfa.forwardAuth.maxResponseBodySize=1048576"
 
   # ── Portal ─────────────────────────────────────────────────
   portal:

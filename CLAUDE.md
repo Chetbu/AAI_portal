@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AAI_portal is an **infrastructure-as-code project** that provides a shared VPS platform for running multiple independent microservices/POC projects behind a single public domain with centralized authentication. The repository is currently in the planning/scaffolding phase — `docs/` contains detailed architecture discussions and a 2000+ line phased implementation plan.
+AAI_portal is an **infrastructure-as-code project** that provides a shared VPS platform for running multiple independent microservices/POC projects behind a single public domain with centralized authentication. Phases 1–4 are complete and running in production. `docs/` contains detailed architecture discussions and a 2000+ line phased implementation plan.
 
 ## Architecture
 
@@ -88,7 +88,7 @@ infrastructure/          # This repo
 │   ├── Dockerfile
 │   ├── index.html
 │   ├── config.json.template
-│   ├── healthcheck.js
+│   ├── healthcheck.sh
 │   └── entrypoint.sh
 └── docs/
     ├── highlevel_architecture_discussion.md
