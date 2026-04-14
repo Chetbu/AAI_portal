@@ -10,14 +10,14 @@ AAI_portal is an **infrastructure-as-code project** that provides a shared VPS p
 
 ```
 Internet → Traefik (TLS termination, subdomain routing)
-              → oauth2-proxy (Azure AD authentication)
+              → Authelia (ForwardAuth — returns 302, not 401, so no redirect loop)
                   → Portal (static nginx, landing page)
                   → project-N.${BASE_DOMAIN} (independent project containers)
 ```
 
 **Three core infrastructure services** (all run via a single `docker-compose.yml`):
-1. **Traefik v3.1** — reverse proxy, SSL via Let's Encrypt (HTTP challenge), dynamic service discovery via Docker labels
-2. **oauth2-proxy** — ForwardAuth middleware, Azure AD / Microsoft Entra ID, email whitelisting
+1. **Traefik v3.1** — reverse proxy, SSL via Let's Encrypt (DNS-01 challenge via Hostinger), dynamic service discovery via Docker labels
+2. **Authelia** — ForwardAuth middleware, local file authentication. Returns `302` on unauthenticated requests (Traefik passes this to the browser directly — no errors middleware, no redirect loop). Azure AD OIDC planned when Authelia stable support lands.
 3. **Portal** — nginx serving static HTML + client-side JS health checker
 
 **Independent projects** live in separate git repos under `projects/`. They integrate by:
@@ -44,7 +44,7 @@ labels:
   - "traefik.docker.network=aai-public"
   - "traefik.http.routers.<name>.rule=Host(`<subdomain>.${BASE_DOMAIN}`)"
   - "traefik.http.routers.<name>.tls.certresolver=letsencrypt"
-  - "traefik.http.routers.<name>.middlewares=oauth@docker,secure-headers@file"
+  - "traefik.http.routers.<name>.middlewares=authelia@docker,secure-headers@file"
   - "traefik.http.services.<name>.loadbalancer.server.port=<port>"
 ```
 
@@ -82,8 +82,10 @@ infrastructure/          # This repo
 │   ├── acme.json            # gitignored, chmod 600
 │   └── dynamic/
 │       └── middlewares.yml
-├── oauth2-proxy/
-│   └── allowed_emails.txt
+├── authelia/
+│   ├── configuration.yml    # access_control rules (non-secret static config)
+│   ├── users.yml            # local user accounts (argon2id hashed passwords)
+│   └── db.sqlite3           # gitignored, auto-created by Authelia
 ├── portal/
 │   ├── Dockerfile
 │   ├── index.html
@@ -105,7 +107,7 @@ projects/                # Sibling directory, separate git repos
 The `docs/detailed_plan_OPUS.md` contains the authoritative 6-phase implementation plan:
 - **Phase 1**: VPS provisioning, DNS, Docker setup, directory layout
 - **Phase 2**: Traefik setup, SSL, test container
-- **Phase 3**: Azure AD app registration, oauth2-proxy
+- **Phase 3**: Authelia ForwardAuth (local file auth; Azure AD OIDC backend planned)
 - **Phase 4**: Portal (static site, health checker, config templating)
 - **Phase 5**: Project template (reusable scaffolding for new POCs)
 - **Phase 6**: Hardening, backups, monitoring
@@ -116,6 +118,7 @@ When generating or modifying infrastructure files, consult `docs/detailed_plan_O
 
 - `acme.json` must have `chmod 600` or Traefik will refuse to start
 - Docker socket should be mounted read-only on Traefik when possible
-- oauth2-proxy `allowed_emails.txt` controls access (one email per line)
+- Authelia `users.yml` controls access; passwords are argon2id hashes (never plaintext)
 - Session cookies use domain `.${BASE_DOMAIN}` for SSO across all subdomains
-- Traefik dashboard itself is protected behind oauth2-proxy
+- Traefik dashboard itself is protected behind Authelia
+- Authelia `db.sqlite3` is auto-created and gitignored; back it up if needed
