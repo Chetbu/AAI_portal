@@ -3,24 +3,26 @@
 <head><title>Signing in…</title></head>
 <body>
 <!--
-  Two-phase sign-in to avoid the CSRF race condition that occurs when Traefik's
-  errors middleware triggers concurrent /oauth2/sign_in calls.
+  Two-phase sign-in to break the Traefik errors-middleware loop.
 
-  Phase 1 — served via the errors middleware proxy on the protected domain
-  (e.g. test.aai.chetbu.fr): no CSRF token is created here; the browser is
-  simply redirected to the auth domain.
+  The errors middleware serves this page INLINE at the protected domain
+  (e.g. test.aai.chetbu.fr) — the browser URL does not change.
+  Any relative link would stay on the protected domain → loop.
 
-  Phase 2 — served directly on auth.aai.chetbu.fr after the redirect: the
-  form auto-submits via POST, which is when oauth2-proxy creates exactly one
-  CSRF token and starts the OAuth flow.
+  Phase 1 — served inline on a protected domain:
+    JS redirects the browser to auth.aai.chetbu.fr/oauth2/sign_in?rd=<original_url>
+    No CSRF token is created here.
+
+  Phase 2 — served directly on auth.aai.chetbu.fr (after the redirect):
+    JS redirects to /oauth2/start?rd=<rd>, which creates exactly ONE CSRF token
+    and starts the OAuth flow with Microsoft.
 -->
-<form id="f" method="POST" action="/oauth2/sign_in">
-  <input type="hidden" name="rd" value="{{.Redirect}}">
-</form>
 <script>
   if (window.location.hostname === 'auth.aai.chetbu.fr') {
-    // Phase 2: on the auth domain — start the OAuth flow immediately
-    document.getElementById('f').submit();
+    // Phase 2: on the auth domain — start the OAuth flow
+    var params = new URLSearchParams(window.location.search);
+    var rd = params.get('rd') || '/';
+    window.location.replace('/oauth2/start?rd=' + encodeURIComponent(rd));
   } else {
     // Phase 1: on a protected domain — send the browser to the auth domain
     window.location.replace(
