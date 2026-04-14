@@ -3,11 +3,12 @@ services:
   # ── AAI Traefik ───────────────────────────────────────────
   # No ports: section — existing Traefik forwards traffic via TCP passthrough
   traefik:
-    image: traefik:v3.1
+    image: traefik:v3
     container_name: aai-traefik
     restart: unless-stopped
     environment:
       - ACME_EMAIL=${ACME_EMAIL}
+      - BASE_DOMAIN=${BASE_DOMAIN}
       - HOSTINGER_API_TOKEN=${HOSTINGER_API_TOKEN}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro

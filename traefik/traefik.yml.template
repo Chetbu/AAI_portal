@@ -29,6 +29,10 @@ entryPoints:
     http:
       tls:
         certResolver: letsencrypt
+        domains:
+          - main: "${BASE_DOMAIN}"
+            sans:
+              - "*.${BASE_DOMAIN}"
 
 # ── Providers ────────────────────────────────────────────────
 providers:
