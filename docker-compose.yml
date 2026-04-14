@@ -51,7 +51,7 @@ services:
       - URL_PATH=/_oauth
       # Access control — comma-separated list of allowed emails
       - WHITELIST=${ALLOWED_EMAILS}
-      - LOG_LEVEL=info
+      - LOG_LEVEL=debug
     networks:
       - aai-public
     labels:
