@@ -71,9 +71,9 @@ services:
       - "traefik.http.middlewares.oauth.forwardauth.trustForwardHeader=true"
       - "traefik.http.middlewares.oauth.forwardauth.authResponseHeaders=X-Auth-Request-User,X-Auth-Request-Email,X-Auth-Request-Access-Token"
       # Redirect 401s to the login page
-      - "traefik.http.middlewares.oauth-errors.errors.status=401"
+      - "traefik.http.middlewares.oauth-errors.errors.status=401-403"
       - "traefik.http.middlewares.oauth-errors.errors.service=oauth2-proxy@docker"
-      - "traefik.http.middlewares.oauth-errors.errors.query=/oauth2/sign_in?rd={url}"
+      - "traefik.http.middlewares.oauth-errors.errors.query=/oauth2/sign_in"
 
   # ── Whoami — temporary test container, remove after Phase 3 verification ──
   whoami:
