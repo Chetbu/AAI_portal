@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAI Platform</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --green: #22c55e;
+            --red: #ef4444;
+            --yellow: #eab308;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 { font-size: 1.5rem; font-weight: 600; }
+        header h1 span { color: var(--accent); }
+
+        .user-info { color: var(--text-muted); font-size: 0.875rem; }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .summary {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem 1.5rem;
+            flex: 1;
+            text-align: center;
+        }
+
+        .summary-card .number { font-size: 2rem; font-weight: 700; }
+        .summary-card .label { color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem; }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .project-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: border-color 0.2s;
+        }
+
+        .project-card:hover { border-color: var(--accent); }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .project-name { font-size: 1.125rem; font-weight: 600; }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+
+        .status-badge.up       { background: rgba(34,197,94,0.15); color: var(--green); }
+        .status-badge.down     { background: rgba(239,68,68,0.15);  color: var(--red); }
+        .status-badge.checking { background: rgba(234,179,8,0.15);  color: var(--yellow); }
+
+        .status-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .project-description {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .project-actions { display: flex; gap: 0.75rem; }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #2563eb; }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover { color: var(--text); border-color: var(--text-muted); }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state h2 { font-size: 1.25rem; margin-bottom: 0.5rem; color: var(--text); }
+
+        .last-updated {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><span>AAI</span> Platform</h1>
+        <div class="user-info" id="user-info"></div>
+    </header>
+
+    <main>
+        <div class="summary" id="summary"></div>
+        <div class="projects-grid" id="projects-grid"></div>
+        <div class="last-updated" id="last-updated"></div>
+    </main>
+
+    <script>
+        const CONFIG_URL = '/config.json';
+        const STATUS_URL = '/status.json';
+
+        async function loadData() {
+            try {
+                const [configRes, statusRes] = await Promise.all([
+                    fetch(CONFIG_URL),
+                    fetch(STATUS_URL).catch(() => null)
+                ]);
+
+                const config = await configRes.json();
+                const status = statusRes && statusRes.ok ? await statusRes.json() : {};
+
+                render(config, status);
+            } catch (err) {
+                console.error('Failed to load data:', err);
+                document.getElementById('projects-grid').innerHTML =
+                    '<div class="empty-state"><h2>Error loading configuration</h2><p>Check the console for details.</p></div>';
+            }
+        }
+
+        function render(config, status) {
+            const projects = config.projects || [];
+            const grid = document.getElementById('projects-grid');
+            const summary = document.getElementById('summary');
+
+            const upCount      = projects.filter(p => status[p.slug]?.status === 'up').length;
+            const downCount    = projects.filter(p => status[p.slug]?.status === 'down').length;
+            const unknownCount = projects.length - upCount - downCount;
+
+            summary.innerHTML = `
+                <div class="summary-card">
+                    <div class="number">${projects.length}</div>
+                    <div class="label">Total Projects</div>
+                </div>
+                <div class="summary-card">
+                    <div class="number" style="color: var(--green)">${upCount}</div>
+                    <div class="label">Healthy</div>
+                </div>
+                <div class="summary-card">
+                    <div class="number" style="color: var(--red)">${downCount}</div>
+                    <div class="label">Down</div>
+                </div>
+                <div class="summary-card">
+                    <div class="number" style="color: var(--yellow)">${unknownCount}</div>
+                    <div class="label">Unknown</div>
+                </div>`;
+
+            if (projects.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <h2>No projects yet</h2>
+                        <p>Add your first POC by following the onboarding guide in the README.</p>
+                    </div>`;
+                return;
+            }
+
+            grid.innerHTML = projects.map(project => {
+                const s = status[project.slug] || {};
+                const statusClass = s.status || 'checking';
+                const statusLabel = s.status === 'up' ? 'Healthy'
+                    : s.status === 'down' ? 'Down'
+                    : 'Checking...';
+                const responseTime = s.responseTimeMs ? `${s.responseTimeMs}ms` : '';
+
+                return `
+                    <div class="project-card">
+                        <div class="project-header">
+                            <div class="project-name">${project.name}</div>
+                            <div class="status-badge ${statusClass}">
+                                <div class="status-dot"></div>
+                                ${statusLabel}
+                                ${responseTime ? `<span>(${responseTime})</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="project-description">${project.description || ''}</div>
+                        <div class="project-meta">
+                            <span>${project.owner || 'Unassigned'}</span>
+                            ${s.lastCheck ? `<span>${new Date(s.lastCheck).toLocaleTimeString()}</span>` : ''}
+                        </div>
+                        <div class="project-actions">
+                            <a href="${project.url}" target="_blank" class="btn btn-primary">Open App</a>
+                            ${project.repo ? `<a href="${project.repo}" target="_blank" class="btn btn-secondary">Repository</a>` : ''}
+                        </div>
+                    </div>`;
+            }).join('');
+
+            const timestamps = Object.values(status).map(s => s.lastCheck).filter(Boolean);
+            if (timestamps.length > 0) {
+                const latest = new Date(Math.max(...timestamps.map(t => new Date(t))));
+                document.getElementById('last-updated').textContent =
+                    `Health status last updated: ${latest.toLocaleString()}`;
+            }
+        }
+
+        loadData();
+        setInterval(loadData, 60000);
+    </script>
+</body>
+</html>

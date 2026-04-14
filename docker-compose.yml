@@ -63,20 +63,22 @@ services:
       - "traefik.http.middlewares.tfa.forwardAuth.trustForwardHeader=true"
       - "traefik.http.middlewares.tfa.forwardAuth.authResponseHeaders=X-Forwarded-User"
 
-  # ── Whoami — temporary test container, remove after Phase 3 verification ──
-  whoami:
-    image: traefik/whoami
-    container_name: aai-whoami
+  # ── Portal ─────────────────────────────────────────────────
+  portal:
+    build: ./portal
+    container_name: aai-portal
     restart: unless-stopped
+    environment:
+      - BASE_DOMAIN=${BASE_DOMAIN}
     networks:
       - aai-public
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=aai-public"
-      - "traefik.http.routers.whoami.rule=Host(`test.${BASE_DOMAIN}`)"
-      - "traefik.http.routers.whoami.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.whoami.middlewares=tfa@docker,secure-headers@file"
-      - "traefik.http.services.whoami.loadbalancer.server.port=80"
+      - "traefik.http.routers.portal.rule=Host(`${BASE_DOMAIN}`)"
+      - "traefik.http.routers.portal.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.portal.middlewares=tfa@docker,secure-headers@file"
+      - "traefik.http.services.portal.loadbalancer.server.port=80"
 
 volumes:
   traefik-logs:
