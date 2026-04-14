@@ -49,9 +49,7 @@ services:
       # Route all auth callbacks through a single dedicated host
       - AUTH_HOST=auth.${BASE_DOMAIN}
       - URL_PATH=/_oauth
-      # Access control — comma-separated list of allowed emails
-      - WHITELIST=${ALLOWED_EMAILS}
-      - LOG_LEVEL=debug
+      - LOG_LEVEL=info
     networks:
       - aai-public
     labels:
