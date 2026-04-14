@@ -27,7 +27,7 @@ services:
       - "traefik.http.routers.dashboard.rule=Host(`traefik.${BASE_DOMAIN}`)"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.dashboard.middlewares=oauth@docker,secure-headers@file"
+      - "traefik.http.routers.dashboard.middlewares=oauth-errors@docker,oauth@docker,secure-headers@file"
 
   # ── OAuth2 Proxy ───────────────────────────────────────────
   oauth2-proxy:
@@ -87,7 +87,7 @@ services:
       - "traefik.docker.network=aai-public"
       - "traefik.http.routers.whoami.rule=Host(`test.${BASE_DOMAIN}`)"
       - "traefik.http.routers.whoami.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.whoami.middlewares=oauth@docker,secure-headers@file"
+      - "traefik.http.routers.whoami.middlewares=oauth-errors@docker,oauth@docker,secure-headers@file"
       - "traefik.http.services.whoami.loadbalancer.server.port=80"
 
 volumes:
