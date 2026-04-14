@@ -59,8 +59,8 @@ services:
       - "traefik.docker.network=aai-public"
       - "traefik.http.routers.traefik-forward-auth.rule=Host(`auth.${BASE_DOMAIN}`)"
       - "traefik.http.routers.traefik-forward-auth.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik-forward-auth.middlewares=tfa@docker"          # ← ADD THIS LINE
       - "traefik.http.services.traefik-forward-auth.loadbalancer.server.port=4181"
-      # ForwardAuth middleware — all protected services reference this as "tfa@docker"
       - "traefik.http.middlewares.tfa.forwardAuth.address=http://aai-traefik-forward-auth:4181"
       - "traefik.http.middlewares.tfa.forwardAuth.trustForwardHeader=true"
       - "traefik.http.middlewares.tfa.forwardAuth.authResponseHeaders=X-Forwarded-User"
