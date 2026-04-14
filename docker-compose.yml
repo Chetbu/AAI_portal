@@ -35,7 +35,7 @@ services:
   # the browser, so there is no errors-middleware loop.
   traefik-forward-auth:
     image: thomseddon/traefik-forward-auth:2
-    container_name: traefik-forward-auth
+    container_name: aai-traefik-forward-auth
     restart: unless-stopped
     environment:
       # Azure AD OIDC
@@ -61,7 +61,7 @@ services:
       - "traefik.http.routers.traefik-forward-auth.tls.certresolver=letsencrypt"
       - "traefik.http.services.traefik-forward-auth.loadbalancer.server.port=4181"
       # ForwardAuth middleware — all protected services reference this as "tfa@docker"
-      - "traefik.http.middlewares.tfa.forwardAuth.address=http://traefik-forward-auth:4181"
+      - "traefik.http.middlewares.tfa.forwardAuth.address=http://aai-traefik-forward-auth:4181"
       - "traefik.http.middlewares.tfa.forwardAuth.trustForwardHeader=true"
       - "traefik.http.middlewares.tfa.forwardAuth.authResponseHeaders=X-Forwarded-User"
 
