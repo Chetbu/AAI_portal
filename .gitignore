@@ -13,8 +13,5 @@ traefik/acme.json
 # Docker
 docker-compose.override.yml
 
-# Authelia database (auto-generated)
-authelia/db.sqlite3
-
 # Folders
 existing_VPS_files/
