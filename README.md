@@ -168,6 +168,7 @@ The service will be reachable at `https://<subdomain>.BASE_DOMAIN` and protected
 **Guides** (`docs/guides/`):
 - `docs/guides/new_project_greenfield.md` — scaffolding a new project from scratch
 - `docs/guides/integrate_existing_project.md` — onboarding an existing git project
+- `docs/guides/vps_operations.md` — manual VPS setup: cron jobs, log rotation, backups
 - `docs/guides/authentification_fix_with_Azure.md` — auth migration history and known gotchas
 
 **Architecture & planning** (`docs/architecture/`):

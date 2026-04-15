@@ -21,6 +21,11 @@ services:
     command: ["traefik"]
     networks:
       - aai-public
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=aai-public"
@@ -52,6 +57,11 @@ services:
       - LOG_LEVEL=info
     networks:
       - aai-public
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=aai-public"
@@ -73,6 +83,11 @@ services:
       - BASE_DOMAIN=${BASE_DOMAIN}
     networks:
       - aai-public
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=aai-public"
