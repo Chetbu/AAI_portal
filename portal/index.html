@@ -388,7 +388,7 @@
 
             const platformRepo = config.platform?.repo;
             document.getElementById('user-info').innerHTML = platformRepo
-                ? `<a href="${platformRepo}" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:none;font-size:0.8125rem;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">Infrastructure repo ↗</a>`
+                ? `<a href="${platformRepo}" target="_blank" rel="noopener" class="btn btn-secondary">Infrastructure repo</a>`
                 : '';
 
             const upCount      = projects.filter(p => status[p.slug]?.status === 'up').length;
