@@ -83,6 +83,8 @@ services:
     restart: unless-stopped
     environment:
       - BASE_DOMAIN=${BASE_DOMAIN}
+    volumes:
+      - ../projects:/projects:ro
     networks:
       - aai-public
     deploy:

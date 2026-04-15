@@ -1,17 +1,7 @@
 {
   "platform": {
     "name": "AAI Platform",
-    "description": "Internal AI proof-of-concept hub"
-  },
-  "projects": [
-    {
-      "slug": "pipeline",
-      "name": "Pipeline",
-      "description": "TODO: Add description",
-      "owner": "TODO: Add owner",
-      "url": "https://pipeline.${BASE_DOMAIN}",
-      "healthInternal": "http://aai-pipeline:8742/health",
-      "repo": "TODO: Add repo URL"
-    }
-  ]
+    "description": "Internal AI proof-of-concept hub",
+    "repo": "https://github.com/Chetbu/AAI_portal"
+  }
 }

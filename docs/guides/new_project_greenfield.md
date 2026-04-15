@@ -59,6 +59,7 @@ llm-chatbot/
 ├── docker-compose.yml      # pre-configured with Traefik labels
 ├── Makefile                # platform-standard make targets
 ├── Dockerfile              # python:3.12-slim placeholder
+├── portal.json             # portal registration metadata (commit this)
 ├── .gitignore
 ├── .env.example
 ├── .env                    # copy of .env.example, gitignored
@@ -85,7 +86,7 @@ The script also initialises a git repo and makes an initial commit.
 
 **`Dockerfile`** — `python:3.12-slim`, copies `src/`, exposes the port
 
-At the end the script prints the portal config entry to add in step 2.4 — keep it handy.
+The script also generates `portal.json` — the metadata file the portal reads to register this project. You will fill in `description` and `repo` in Part 4.
 
 ### 1.4 Verify the generated files
 
@@ -186,23 +187,24 @@ docker exec aai-<slug> curl -s http://localhost:<port>/health
 
 ## Part 4 — Admin Steps in the Infrastructure Repo
 
-### 4.1 Register in the portal
+### 4.1 Fill in `portal.json`
 
-Edit `portal/config.json.template` and add the entry printed by the scaffold script to the `projects` array. It looks like:
+The scaffold script generated `portal.json` in your project directory. Open it and fill in the two `TODO` fields:
 
 ```json
 {
   "slug": "<slug>",
   "name": "<name>",
-  "description": "TODO: Add description",
+  "description": "One-line description of what this project does",
   "owner": "<owner>",
-  "url": "https://<slug>.${BASE_DOMAIN}",
-  "healthInternal": "http://aai-<slug>:<port>/health",
-  "repo": "TODO: Add repo URL"
+  "port": <port>,
+  "repo": "https://github.com/yourorg/<repo>"
 }
 ```
 
-Fill in `description` and `repo` before committing. `${BASE_DOMAIN}` is kept as a template variable — the portal container substitutes it at startup.
+- `port` — mandatory, the single port the container exposes. The portal derives the health check URL (`http://aai-<slug>:<port>/health`) from it automatically. If `/health` doesn't return HTTP 200, the card shows as down.
+
+Commit `portal.json` to the project repo.
 
 ### 4.2 Reload the portal
 
@@ -246,8 +248,8 @@ git push -u origin main
 
 **Admin — infrastructure repo:**
 ```
-[  ] Entry added to portal/config.json.template
-[  ] description and repo fields filled in
+[  ] portal.json description and repo fields filled in
+[  ] portal.json committed to the project repo
 [  ] make restart run in infrastructure directory
 [  ] Portal card appears with correct status badge
 ```

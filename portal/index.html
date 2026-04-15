@@ -161,6 +161,23 @@
             margin-top: 2rem;
         }
 
+        .port-tag {
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.75rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            padding: 0.1em 0.4em;
+            color: var(--text-muted);
+            cursor: default;
+        }
+
+        .port-tag.port-conflict {
+            color: var(--yellow);
+            border-color: rgba(234,179,8,0.5);
+            background: rgba(234,179,8,0.08);
+        }
+
         .section-heading {
             font-size: 1.125rem;
             font-weight: 600;
@@ -369,9 +386,31 @@
             const grid = document.getElementById('projects-grid');
             const summary = document.getElementById('summary');
 
+            const platformRepo = config.platform?.repo;
+            document.getElementById('user-info').innerHTML = platformRepo
+                ? `<a href="${platformRepo}" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:none;font-size:0.8125rem;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">Infrastructure repo ↗</a>`
+                : '';
+
             const upCount      = projects.filter(p => status[p.slug]?.status === 'up').length;
             const downCount    = projects.filter(p => status[p.slug]?.status === 'down').length;
             const unknownCount = projects.length - upCount - downCount;
+
+            // Port conflict detection
+            const portMap = {};
+            projects.forEach(p => {
+                if (p.port != null) {
+                    if (!portMap[p.port]) portMap[p.port] = [];
+                    portMap[p.port].push(p.slug);
+                }
+            });
+            const conflictingPorts = Object.entries(portMap).filter(([, slugs]) => slugs.length > 1);
+            const conflictCount = conflictingPorts.length;
+            const conflictsBySlug = {};
+            conflictingPorts.forEach(([port, slugs]) => {
+                slugs.forEach(slug => {
+                    conflictsBySlug[slug] = { port: Number(port), others: slugs.filter(s => s !== slug) };
+                });
+            });
 
             summary.innerHTML = `
                 <div class="summary-card">
@@ -389,6 +428,10 @@
                 <div class="summary-card">
                     <div class="number" style="color: var(--yellow)">${unknownCount}</div>
                     <div class="label">Unknown</div>
+                </div>
+                <div class="summary-card">
+                    <div class="number" style="${conflictCount > 0 ? 'color: var(--yellow)' : ''}">${conflictCount}</div>
+                    <div class="label">Port Conflicts</div>
                 </div>`;
 
             if (projects.length === 0) {
@@ -408,6 +451,11 @@
                     : 'Checking...';
                 const responseTime = s.responseTimeMs ? `${s.responseTimeMs}ms` : '';
 
+                const conflict = conflictsBySlug[project.slug];
+                const portBadge = project.port != null
+                    ? `<span class="port-tag${conflict ? ' port-conflict' : ''}" title="${conflict ? 'Port conflict: also used by ' + conflict.others.join(', ') : 'Internal port'}">:${project.port}</span>`
+                    : '';
+
                 return `
                     <div class="project-card">
                         <div class="project-header">
@@ -421,6 +469,7 @@
                         <div class="project-description">${project.description || ''}</div>
                         <div class="project-meta">
                             <span>${project.owner || 'Unassigned'}</span>
+                            ${portBadge}
                             ${s.lastCheck ? `<span>${new Date(s.lastCheck).toLocaleTimeString()}</span>` : ''}
                         </div>
                         <div class="project-actions">

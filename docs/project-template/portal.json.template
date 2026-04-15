@@ -1,0 +1,8 @@
+{
+  "slug": "__PROJECT_SLUG__",
+  "name": "__PROJECT_NAME__",
+  "description": "",
+  "owner": "",
+  "port": __APP_PORT__,
+  "repo": ""
+}

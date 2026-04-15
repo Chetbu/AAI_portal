@@ -108,32 +108,30 @@ make validate  # Dry-run: render compose config with variable substitution
 
 ## Adding a new project
 
-Independent projects live in separate git repos under the sibling `projects/` directory. To integrate with the platform:
+Independent projects live in separate git repos under the sibling `projects/` directory. See `docs/guides/` for full step-by-step guides. In brief:
 
-1. Declare `aai-public` as an external network in the project's `docker-compose.yml`:
-   ```yaml
-   networks:
-     aai-public:
-       external: true
+1. Declare `aai-public` as an external network and add the 6 Traefik labels to the project's `docker-compose.yml` (see `docs/guides/integrate_existing_project.md`).
+
+2. Add a `portal.json` at the root of the project repo:
+   ```json
+   {
+     "slug": "<slug>",
+     "name": "My Project",
+     "description": "What this project does",
+     "owner": "Team name",
+     "port": 8000,
+     "repo": "https://github.com/yourorg/my-project"
+   }
    ```
+   The portal derives the public URL and health check URL (`/health` on the same port) automatically.
 
-2. Add these 6 Traefik labels to the service:
-   ```yaml
-   labels:
-     - "traefik.enable=true"
-     - "traefik.docker.network=aai-public"
-     - "traefik.http.routers.<name>.rule=Host(`<subdomain>.${BASE_DOMAIN}`)"
-     - "traefik.http.routers.<name>.tls.certresolver=letsencrypt"
-     - "traefik.http.routers.<name>.middlewares=tfa@docker,secure-headers@file"
-     - "traefik.http.services.<name>.loadbalancer.server.port=<port>"
-   ```
+3. Clone the project to `/opt/aai/projects/<slug>/` on the VPS, then run `make restart` in this infrastructure directory. The portal picks up `portal.json` on startup — no manual edit of any infrastructure file is needed.
 
-3. Start the project with both env files:
-   ```bash
-   docker compose --env-file ../shared.env --env-file .env up -d --build
-   ```
-
-The service will be reachable at `https://<subdomain>.BASE_DOMAIN` and protected by Azure AD authentication.
+For greenfield projects, use the scaffold script instead:
+```bash
+./scripts/new-project.sh <slug> "<name>" [port] [owner]
+```
+It generates all the boilerplate including `portal.json`.
 
 ## Directory structure
 
@@ -182,3 +180,4 @@ The service will be reachable at `https://<subdomain>.BASE_DOMAIN` and protected
 - `docs/architecture/highlevel_architecture_discussion.md` — high-level architecture discussion
 - `docs/architecture/authentification_fix_with_Azure.md` — auth migration history and known gotchas
 - `docs/architecture/portal_guides_feature.md` — guides viewer: design decisions, files changed, how to add guides
+- `docs/architecture/portal_config_autodiscovery.md` — per-project `portal.json` auto-discovery: design, schema, trade-offs

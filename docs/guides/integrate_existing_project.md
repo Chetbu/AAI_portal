@@ -132,6 +132,32 @@ This endpoint is called internally (Docker hostname, no auth, no TLS) so it requ
 
 If your project requires secrets, commit a `.env.example` with placeholder values. The actual `.env` should be gitignored.
 
+### 1.6 Add a `portal.json`
+
+Create a `portal.json` at the root of your project repo (alongside `docker-compose.yml`) and commit it. The portal reads this file to register the project automatically — no manual edit of the infrastructure repo is needed.
+
+```json
+{
+  "slug": "<slug>",
+  "name": "Human-readable project name",
+  "description": "One-line description of what this project does",
+  "owner": "Name or team",
+  "port": <port>,
+  "repo": "https://github.com/yourorg/<repo>"
+}
+```
+
+| Field | Required | Notes |
+|---|---|---|
+| `slug` | Yes | Must match the slug in your Traefik labels and `container_name` |
+| `name` | Yes | Display name on the portal card |
+| `description` | No | Short description shown on the card |
+| `owner` | No | Team or person responsible |
+| `port` | Yes | The single port the container exposes; used for health checks and port conflict detection |
+| `repo` | No | Adds a "Repository" button to the portal card |
+
+The portal derives the public URL (`https://<slug>.BASE_DOMAIN`) and health check URL (`http://aai-<slug>:<port>/health`) automatically. If `/health` doesn't return HTTP 200 the card shows as down. You never need to hardcode domain names.
+
 ---
 
 ## Part 2 — Admin Steps in the Infrastructure Repo
@@ -172,25 +198,9 @@ make ps    # confirm aai-<slug> shows "Up"
 
 Open a browser and navigate to `https://<slug>.BASE_DOMAIN`. You should be redirected to the Azure AD login (or pass through if already authenticated), then land on the project's UI.
 
-### 2.5 Register the project in the portal
+### 2.5 Reload the portal
 
-Edit `portal/config.json.template` in the infrastructure repo and add an entry to the `projects` array:
-
-```json
-{
-  "slug": "<slug>",
-  "name": "Human-readable project name",
-  "description": "One-line description of what this project does",
-  "owner": "Name or team",
-  "url": "https://<slug>.${BASE_DOMAIN}",
-  "healthInternal": "http://aai-<slug>:<port>/health",
-  "repo": "https://github.com/yourorg/<repo>"
-}
-```
-
-- `url` — uses `${BASE_DOMAIN}` (the portal container substitutes it at startup via `envsubst`)
-- `healthInternal` — uses the container name (`aai-<slug>`) and internal port; omit this field entirely if the project has no `/health` endpoint
-- `repo` — optional, adds a "Repository" button to the portal card
+The `portal.json` committed in the project repo is already present after the `git clone` in step 2.1. The portal discovers it automatically on startup — no changes to the infrastructure repo are needed.
 
 ### 2.6 Reload the portal
 
@@ -215,6 +225,7 @@ The portal container re-renders `config.json` with the updated template on start
 [  ] Makefile committed
 [  ] /health endpoint implemented
 [  ] .env.example committed, .env gitignored
+[  ] portal.json committed
 ```
 
 **Admin steps on the VPS:**
@@ -223,7 +234,6 @@ The portal container re-renders `config.json` with the updated template on start
 [  ] .env created
 [  ] make up && make ps shows container "Up"
 [  ] Browser test: routing and auth work
-[  ] Entry added to portal/config.json.template
 [  ] make restart run in infrastructure directory
 [  ] Portal card appears with correct status
 ```

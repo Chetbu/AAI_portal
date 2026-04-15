@@ -51,6 +51,18 @@ cp "${TEMPLATE_DIR}/gitignore.template"     "${PROJECT_DIR}/.gitignore"
 cp "${TEMPLATE_DIR}/env.example.template"   "${PROJECT_DIR}/.env.example"
 cp "${PROJECT_DIR}/.env.example"            "${PROJECT_DIR}/.env"
 
+# ── portal.json (read by the portal container to register this project) ───
+cat > "${PROJECT_DIR}/portal.json" << JSON
+{
+  "slug": "${SLUG}",
+  "name": "${NAME}",
+  "description": "TODO: Add description",
+  "owner": "${OWNER}",
+  "port": ${PORT},
+  "repo": "TODO: Add repo URL"
+}
+JSON
+
 # ── Minimal Python placeholder app ───────────────────────────
 cat > "${PROJECT_DIR}/src/main.py" << PYTHON
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -105,28 +117,6 @@ echo ""
 echo "Project created at: ${PROJECT_DIR}"
 echo ""
 echo "Next steps:"
-echo "  1. cd ${PROJECT_DIR} && make up"
-echo "  2. Add this entry to portal/config.json.template → projects array:"
-echo ""
-
-# Read BASE_DOMAIN from shared.env (sibling of the infrastructure directory)
-SHARED_ENV="${SCRIPT_DIR}/../../shared.env"
-BASE_DOMAIN=$(grep -E '^BASE_DOMAIN=' "$SHARED_ENV" 2>/dev/null | cut -d= -f2)
-if [ -z "$BASE_DOMAIN" ]; then
-    BASE_DOMAIN="\${BASE_DOMAIN}"
-fi
-
-cat << JSON
-    {
-      "slug": "${SLUG}",
-      "name": "${NAME}",
-      "description": "TODO: Add description",
-      "owner": "${OWNER}",
-      "url": "https://${SLUG}.${BASE_DOMAIN}",
-      "healthInternal": "http://aai-${SLUG}:${PORT}/health",
-      "repo": "TODO: Add repo URL"
-    }
-JSON
-
-echo ""
-echo "  3. Run 'make restart' in the infrastructure directory to reload the portal config."
+echo "  1. Fill in description and repo in ${PROJECT_DIR}/portal.json"
+echo "  2. cd ${PROJECT_DIR} && make up"
+echo "  3. Run 'make restart' in the infrastructure directory to register the project in the portal."

@@ -53,7 +53,7 @@ labels:
 Three layers of variable substitution at different stages:
 - `docker-compose.yml` — Docker Compose interpolates `${VAR}` at runtime
 - `traefik.yml.template` → `traefik.yml` — `envsubst` via `entrypoint-wrapper.sh` at container start
-- `portal/config.json.template` → `config.json` — `envsubst` via `portal/entrypoint.sh` at container start
+- `portal/config.json.template` (platform metadata) + `../projects/*/portal.json` (per-project metadata) → `config.json` — assembled by `portal/entrypoint.sh` at container start using `jq`; `url` and `healthInternal` are derived from each project's `slug` + `port`
 
 ### Makefile Targets
 ```bash
@@ -97,7 +97,8 @@ infrastructure/          # This repo
     │   ├── highlevel_architecture_discussion.md
     │   ├── shared_vps_architecture_discussion.md
     │   ├── authentification_fix_with_Azure.md   # auth migration history and gotchas
-    │   └── portal_guides_feature.md             # guides viewer design decisions
+    │   ├── portal_guides_feature.md             # guides viewer design decisions
+    │   └── portal_config_autodiscovery.md       # per-project portal.json auto-discovery
     └── guides/                                  # served in-browser via the portal
         ├── new_project_greenfield.md            # how to scaffold a new project
         ├── integrate_existing_project.md        # how to onboard an existing repo
