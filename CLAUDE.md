@@ -19,7 +19,7 @@ Internet → Outer Traefik (TCP SNI passthrough for *.${BASE_DOMAIN})
 **Three core infrastructure services** (all run via a single `docker-compose.yml`):
 1. **Traefik v3.1** — reverse proxy, SSL via Let's Encrypt (DNS-01 challenge via Hostinger), dynamic service discovery via Docker labels
 2. **traefik-forward-auth** (`aai-traefik-forward-auth`) — ForwardAuth middleware, Azure AD OIDC. Returns `307` on unauthenticated requests (Traefik passes this straight to the browser — no errors middleware, no loop). Uses `AUTH_HOST=auth.${BASE_DOMAIN}` mode. Access control via Entra ID user assignment (no email whitelist in config).
-3. **Portal** — nginx serving static HTML + client-side JS health checker
+3. **Portal** — nginx serving static HTML + client-side JS health checker + in-browser guides viewer
 
 **Independent projects** live in separate git repos under `projects/`. They integrate by:
 - Declaring `aai-public` as an external Docker network
@@ -86,6 +86,7 @@ infrastructure/          # This repo
 │   # traefik-forward-auth has no config files — entirely configured via env vars
 ├── portal/
 │   ├── Dockerfile
+│   ├── nginx.conf
 │   ├── index.html
 │   ├── config.json.template
 │   ├── healthcheck.sh
@@ -94,11 +95,13 @@ infrastructure/          # This repo
     ├── architecture/
     │   ├── detailed_plan_OPUS.md                # 6-phase implementation plan
     │   ├── highlevel_architecture_discussion.md
-    │   └── shared_vps_architecture_discussion.md
-    └── guides/
+    │   ├── shared_vps_architecture_discussion.md
+    │   ├── authentification_fix_with_Azure.md   # auth migration history and gotchas
+    │   └── portal_guides_feature.md             # guides viewer design decisions
+    └── guides/                                  # served in-browser via the portal
         ├── new_project_greenfield.md            # how to scaffold a new project
         ├── integrate_existing_project.md        # how to onboard an existing repo
-        └── authentification_fix_with_Azure.md   # auth migration history
+        └── vps_operations.md                    # backup, cleanup, log rotation
 
 projects/                # Sibling directory, separate git repos
 ├── project-1/
@@ -125,7 +128,7 @@ traefik-forward-auth runs in `AUTH_HOST` mode (`auth.${BASE_DOMAIN}`). Critical 
 - Container is named `aai-traefik-forward-auth` (not `traefik-forward-auth`) to avoid collision with the outer VPS Traefik's own forward-auth container.
 - traefik-forward-auth's email whitelist comparison is case-sensitive; to avoid issues, access control is handled entirely via Entra ID (Enterprise Application → Assignment required = Yes). No `WHITELIST`/`DOMAINS` config needed.
 
-See `docs/guides/authentification_fix_with_Azure.md` for the full migration history and auth flow diagram.
+See `docs/architecture/authentification_fix_with_Azure.md` for the full migration history and auth flow diagram.
 
 ## Security Notes
 

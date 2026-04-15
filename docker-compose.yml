@@ -76,7 +76,9 @@ services:
 
   # ── Portal ─────────────────────────────────────────────────
   portal:
-    build: ./portal
+    build:
+      context: .
+      dockerfile: portal/Dockerfile
     container_name: aai-portal
     restart: unless-stopped
     environment:

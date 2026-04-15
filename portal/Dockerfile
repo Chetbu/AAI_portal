@@ -4,11 +4,15 @@ RUN apk add --no-cache curl jq
 
 RUN rm /etc/nginx/conf.d/default.conf
 
-COPY nginx.conf /etc/nginx/conf.d/portal.conf
-COPY index.html /usr/share/nginx/html/index.html
-COPY config.json.template /etc/portal/config.json.template
-COPY healthcheck.sh /usr/local/bin/healthcheck.sh
-COPY entrypoint.sh /entrypoint.sh
+COPY portal/nginx.conf /etc/nginx/conf.d/portal.conf
+COPY portal/index.html /usr/share/nginx/html/index.html
+COPY portal/config.json.template /etc/portal/config.json.template
+COPY portal/healthcheck.sh /usr/local/bin/healthcheck.sh
+COPY portal/entrypoint.sh /entrypoint.sh
+COPY docs/guides/ /usr/share/nginx/html/guides/
+
+RUN curl -fsSL https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js \
+    -o /usr/share/nginx/html/marked.min.js
 
 RUN chmod +x /entrypoint.sh /usr/local/bin/healthcheck.sh
 

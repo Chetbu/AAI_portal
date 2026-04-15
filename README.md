@@ -50,7 +50,7 @@ Internet
 |---|---|---|
 | `aai-traefik` | `traefik:v3` | Reverse proxy, TLS via Hostinger DNS-01, dynamic service discovery |
 | `aai-traefik-forward-auth` | `thomseddon/traefik-forward-auth:2` | Azure AD OIDC, returns 307 on unauthenticated requests |
-| `aai-portal` | custom nginx | Static landing page with live service health checker |
+| `aai-portal` | custom nginx | Static landing page with live service health checker and in-browser guides viewer |
 
 Authentication is enforced by Entra ID — access control is managed in the Azure portal (Enterprise Applications → AAI Platform → Users and groups), not in config files.
 
@@ -152,15 +152,21 @@ The service will be reachable at `https://<subdomain>.BASE_DOMAIN` and protected
 │       └── middlewares.yml         # secure-headers and other file-based middleware
 ├── portal/
 │   ├── Dockerfile
+│   ├── nginx.conf
 │   ├── index.html
 │   ├── config.json.template        # rendered to config.json at container start
 │   ├── healthcheck.sh
 │   └── entrypoint.sh
 └── docs/
-    ├── detailed_plan_OPUS.md               # 6-phase implementation plan
-    ├── highlevel_architecture_discussion.md
-    ├── shared_vps_architecture_discussion.md
-    └── authentification_fix_with_Azure.md  # auth migration history and gotchas
+    ├── architecture/
+    │   ├── detailed_plan_OPUS.md               # 6-phase implementation plan
+    │   ├── highlevel_architecture_discussion.md
+    │   ├── shared_vps_architecture_discussion.md
+    │   └── portal_guides_feature.md            # guides viewer design decisions
+    └── guides/                                 # also served in-browser via the portal
+        ├── new_project_greenfield.md
+        ├── integrate_existing_project.md
+        └── vps_operations.md
 ```
 
 ## Further reading
@@ -169,9 +175,10 @@ The service will be reachable at `https://<subdomain>.BASE_DOMAIN` and protected
 - `docs/guides/new_project_greenfield.md` — scaffolding a new project from scratch
 - `docs/guides/integrate_existing_project.md` — onboarding an existing git project
 - `docs/guides/vps_operations.md` — manual VPS setup: cron jobs, log rotation, backups
-- `docs/guides/authentification_fix_with_Azure.md` — auth migration history and known gotchas
 
 **Architecture & planning** (`docs/architecture/`):
 - `docs/architecture/detailed_plan_OPUS.md` — authoritative 6-phase implementation plan
 - `docs/architecture/shared_vps_architecture_discussion.md` — nested Traefik and shared-VPS design decisions
 - `docs/architecture/highlevel_architecture_discussion.md` — high-level architecture discussion
+- `docs/architecture/authentification_fix_with_Azure.md` — auth migration history and known gotchas
+- `docs/architecture/portal_guides_feature.md` — guides viewer: design decisions, files changed, how to add guides

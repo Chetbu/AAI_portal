@@ -160,6 +160,144 @@
             font-size: 0.75rem;
             margin-top: 2rem;
         }
+
+        .section-heading {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.75rem;
+            margin: 2.5rem 0 1rem;
+        }
+
+        .guides-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .guide-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+
+        .guide-card:hover { border-color: var(--accent); }
+
+        .guide-card-title { font-size: 1rem; font-weight: 600; }
+
+        .guide-card-desc {
+            color: var(--text-muted);
+            font-size: 0.8125rem;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .guide-card-action {
+            margin-top: 0.5rem;
+            align-self: flex-start;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 2rem 1rem;
+            overflow-y: auto;
+        }
+
+        .modal-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            width: 100%;
+            max-width: 820px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--surface);
+            border-radius: 0.75rem 0.75rem 0 0;
+            z-index: 1;
+        }
+
+        .modal-header h2 { font-size: 1.125rem; font-weight: 600; }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+        }
+
+        .modal-close:hover { color: var(--text); background: var(--border); }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: calc(90vh - 4rem);
+        }
+
+        /* Markdown rendered content */
+        .markdown-body { line-height: 1.7; color: var(--text); }
+        .markdown-body h1, .markdown-body h2 { margin: 1.5rem 0 0.75rem; padding-bottom: 0.375rem; border-bottom: 1px solid var(--border); }
+        .markdown-body h3, .markdown-body h4 { margin: 1.25rem 0 0.5rem; }
+        .markdown-body p { margin-bottom: 1rem; }
+        .markdown-body ul, .markdown-body ol { margin: 0 0 1rem 1.5rem; }
+        .markdown-body li { margin-bottom: 0.25rem; }
+        .markdown-body code {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            padding: 0.1em 0.35em;
+            font-size: 0.875em;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+        }
+        .markdown-body pre {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem 1.25rem;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+        .markdown-body pre code { background: none; border: none; padding: 0; font-size: 0.8125rem; }
+        .markdown-body blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 0.25rem 1rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+        .markdown-body a { color: var(--accent); text-decoration: none; }
+        .markdown-body a:hover { text-decoration: underline; }
+        .markdown-body hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+        .markdown-body table { border-collapse: collapse; width: 100%; margin-bottom: 1rem; }
+        .markdown-body th, .markdown-body td { border: 1px solid var(--border); padding: 0.5rem 0.75rem; }
+        .markdown-body th { background: var(--bg); font-weight: 600; }
     </style>
 </head>
 <body>
@@ -172,8 +310,38 @@
         <div class="summary" id="summary"></div>
         <div class="projects-grid" id="projects-grid"></div>
         <div class="last-updated" id="last-updated"></div>
+
+        <div class="section-heading">Guides</div>
+        <div class="guides-grid">
+            <div class="guide-card" onclick="openGuide('new_project_greenfield', 'New Project (Greenfield)')">
+                <div class="guide-card-title">New Project (Greenfield)</div>
+                <div class="guide-card-desc">Scaffold a new project from scratch using the platform template script.</div>
+                <div class="guide-card-action"><span class="btn btn-secondary">Read guide</span></div>
+            </div>
+            <div class="guide-card" onclick="openGuide('integrate_existing_project', 'Integrate Existing Project')">
+                <div class="guide-card-title">Integrate Existing Project</div>
+                <div class="guide-card-desc">Onboard an existing repository into the platform with Traefik routing and auth.</div>
+                <div class="guide-card-action"><span class="btn btn-secondary">Read guide</span></div>
+            </div>
+            <div class="guide-card" onclick="openGuide('vps_operations', 'VPS Operations')">
+                <div class="guide-card-title">VPS Operations</div>
+                <div class="guide-card-desc">Backup procedures, Docker cleanup, log rotation, and status check commands.</div>
+                <div class="guide-card-action"><span class="btn btn-secondary">Read guide</span></div>
+            </div>
+        </div>
     </main>
 
+    <div id="guide-modal" class="modal-overlay" role="dialog" aria-modal="true" style="display:none">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 id="modal-title"></h2>
+                <button class="modal-close" onclick="closeGuide()" aria-label="Close">&times;</button>
+            </div>
+            <div id="guide-content" class="modal-body markdown-body"></div>
+        </div>
+    </div>
+
+    <script src="/marked.min.js"></script>
     <script>
         const CONFIG_URL = '/config.json';
         const STATUS_URL = '/status.json';
@@ -272,6 +440,37 @@
 
         loadData();
         setInterval(loadData, 60000);
+
+        async function openGuide(slug, title) {
+            const modal = document.getElementById('guide-modal');
+            const content = document.getElementById('guide-content');
+            document.getElementById('modal-title').textContent = title;
+            content.innerHTML = '<p style="color:var(--text-muted)">Loading...</p>';
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            try {
+                const res = await fetch(`/guides/${slug}.md`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const text = await res.text();
+                content.innerHTML = marked.parse(text);
+            } catch (err) {
+                content.innerHTML = `<p style="color:var(--red)">Failed to load guide: ${err.message}</p>`;
+            }
+        }
+
+        function closeGuide() {
+            document.getElementById('guide-modal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('guide-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeGuide();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeGuide();
+        });
     </script>
 </body>
 </html>
