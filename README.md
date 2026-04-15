@@ -165,6 +165,12 @@ The service will be reachable at `https://<subdomain>.BASE_DOMAIN` and protected
 
 ## Further reading
 
-- `docs/detailed_plan_OPUS.md` — authoritative 6-phase implementation plan
-- `docs/authentification_fix_with_Azure.md` — auth migration from oauth2-proxy to traefik-forward-auth, known gotchas
-- `docs/shared_vps_architecture_discussion.md` — nested Traefik and shared-VPS design decisions
+**Guides** (`docs/guides/`):
+- `docs/guides/new_project_greenfield.md` — scaffolding a new project from scratch
+- `docs/guides/integrate_existing_project.md` — onboarding an existing git project
+- `docs/guides/authentification_fix_with_Azure.md` — auth migration history and known gotchas
+
+**Architecture & planning** (`docs/architecture/`):
+- `docs/architecture/detailed_plan_OPUS.md` — authoritative 6-phase implementation plan
+- `docs/architecture/shared_vps_architecture_discussion.md` — nested Traefik and shared-VPS design decisions
+- `docs/architecture/highlevel_architecture_discussion.md` — high-level architecture discussion

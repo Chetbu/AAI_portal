@@ -91,9 +91,14 @@ infrastructure/          # This repo
 │   ├── healthcheck.sh
 │   └── entrypoint.sh
 └── docs/
-    ├── highlevel_architecture_discussion.md
-    ├── detailed_plan_OPUS.md        # 6-phase implementation plan
-    └── shared_vps_architecture_discussion.md
+    ├── architecture/
+    │   ├── detailed_plan_OPUS.md                # 6-phase implementation plan
+    │   ├── highlevel_architecture_discussion.md
+    │   └── shared_vps_architecture_discussion.md
+    └── guides/
+        ├── new_project_greenfield.md            # how to scaffold a new project
+        ├── integrate_existing_project.md        # how to onboard an existing repo
+        └── authentification_fix_with_Azure.md   # auth migration history
 
 projects/                # Sibling directory, separate git repos
 ├── project-1/
@@ -110,7 +115,7 @@ The `docs/detailed_plan_OPUS.md` contains the authoritative 6-phase implementati
 - **Phase 5**: Project template (reusable scaffolding for new POCs)
 - **Phase 6**: Hardening, backups, monitoring
 
-When generating or modifying infrastructure files, consult `docs/detailed_plan_OPUS.md` for the exact intended configuration and `docs/shared_vps_architecture_discussion.md` for shared-VPS / nested Traefik scenarios.
+When generating or modifying infrastructure files, consult `docs/architecture/detailed_plan_OPUS.md` for the exact intended configuration and `docs/architecture/shared_vps_architecture_discussion.md` for shared-VPS / nested Traefik scenarios. For project onboarding guides see `docs/guides/`.
 
 ## Authentication Notes
 
@@ -120,7 +125,7 @@ traefik-forward-auth runs in `AUTH_HOST` mode (`auth.${BASE_DOMAIN}`). Critical 
 - Container is named `aai-traefik-forward-auth` (not `traefik-forward-auth`) to avoid collision with the outer VPS Traefik's own forward-auth container.
 - traefik-forward-auth's email whitelist comparison is case-sensitive; to avoid issues, access control is handled entirely via Entra ID (Enterprise Application → Assignment required = Yes). No `WHITELIST`/`DOMAINS` config needed.
 
-See `docs/authentification_fix_with_Azure.md` for the full migration history and auth flow diagram.
+See `docs/guides/authentification_fix_with_Azure.md` for the full migration history and auth flow diagram.
 
 ## Security Notes
 

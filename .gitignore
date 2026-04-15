@@ -12,6 +12,3 @@ traefik/acme.json
 
 # Docker
 docker-compose.override.yml
-
-# Folders
-existing_VPS_files/
