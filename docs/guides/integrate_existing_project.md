@@ -116,7 +116,36 @@ build:
 
 **Commit the Makefile** to the repo so anyone cloning it gets the correct setup out of the box.
 
-### 1.4 Add a health endpoint (recommended)
+### 1.4 Read the authenticated user's identity (optional)
+
+Every request that passes through the `tfa@docker` middleware arrives at your backend with an extra HTTP header injected by Traefik:
+
+```
+X-Forwarded-User: user@example.com
+```
+
+The value is the authenticated user's **Azure AD email address** (always lowercase). You can read it directly in your application:
+
+```python
+# Python — Flask / FastAPI
+user_email = request.headers.get("X-Forwarded-User")
+```
+
+```javascript
+// Node.js — Express
+const userEmail = req.headers['x-forwarded-user'];
+```
+
+```go
+// Go — net/http
+userEmail := r.Header.Get("X-Forwarded-User")
+```
+
+**Security note:** this header is injected by Traefik after the auth middleware validates the session cookie. You can trust it exactly because Traefik strips any `X-Forwarded-User` header sent by the client before forwarding the request. However, if you ever expose a route **without** the `tfa@docker` middleware (i.e. a public route), you must not trust this header — it could be spoofed.
+
+---
+
+### 1.5 Add a health endpoint (recommended)
 
 The portal dashboard shows a live status badge for each project. It works by curling each project's `healthInternal` URL from inside the portal container every 30 seconds.
 
@@ -128,11 +157,11 @@ Your app should expose a `/health` route that returns HTTP 200. The response bod
 
 This endpoint is called internally (Docker hostname, no auth, no TLS) so it requires no special handling. If you skip it, the portal will show the project card without a health badge.
 
-### 1.5 Add a `.env.example`
+### 1.6 Add a `.env.example`
 
 If your project requires secrets, commit a `.env.example` with placeholder values. The actual `.env` should be gitignored.
 
-### 1.6 Add a `portal.json`
+### 1.7 Add a `portal.json`
 
 Create a `portal.json` at the root of your project repo (alongside `docker-compose.yml`) and commit it. The portal reads this file to register the project automatically — no manual edit of the infrastructure repo is needed.
 

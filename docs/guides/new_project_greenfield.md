@@ -115,6 +115,10 @@ The scaffold gives you a working skeleton. Replace `src/main.py` and `Dockerfile
 - **Do not change `ports:` to bind to the host** — this bypasses Traefik and exposes the app without auth
 - Your app does not need to handle HTTPS or authentication — Traefik does both before requests reach your container
 
+### Reading the authenticated user's identity
+
+Because your service uses `tfa@docker`, every incoming request carries a `X-Forwarded-User: email@domain.com` header injected by Traefik. You can read it directly in your app to know who is logged in. See the [identity header section in `integrate_existing_project.md`](integrate_existing_project.md#14-read-the-authenticated-users-identity-optional) for code examples and security notes.
+
 ### Adding project-specific secrets
 
 Add variables to `.env.example` (committed) and `.env` (gitignored):
